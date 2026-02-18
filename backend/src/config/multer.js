@@ -1,5 +1,4 @@
 const multer = require("multer");
-const path = require("path");
 
 // Storage config
 const storage = multer.diskStorage({
@@ -7,23 +6,39 @@ const storage = multer.diskStorage({
     cb(null, "uploads/");
   },
   filename: function (req, file, cb) {
-    const uniqueName = Date.now() + path.extname(file.originalname);
-    cb(null, uniqueName);
-  },
+    cb(null, Date.now() + "-" + file.originalname);
+  }
 });
 
-// File filter (only images)
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith("image/")) {
+// Image filter
+const imageFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith("image")) {
     cb(null, true);
   } else {
     cb(new Error("Only images are allowed"), false);
   }
 };
 
-const upload = multer({
+// Audio filter
+const audioFilter = (req, file, cb) => {
+  if (
+    file.mimetype === "audio/wav" ||
+    file.mimetype === "audio/x-wav" ||
+    file.mimetype === "audio/wave"
+  ) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only WAV audio files are allowed"), false);
+  }
+};
+
+// Export two upload middlewares
+exports.imageUpload = multer({
   storage,
-  fileFilter,
+  fileFilter: imageFilter
 });
 
-module.exports = upload;
+exports.audioUpload = multer({
+  storage,
+  fileFilter: audioFilter
+});
