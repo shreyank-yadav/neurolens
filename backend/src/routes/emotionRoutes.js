@@ -3,14 +3,16 @@ const router = express.Router();
 
 const { protect } = require("../middleware/authMiddleware");
 
-// 👇 Import separated upload middlewares
 const { imageUpload, audioUpload } = require("../config/multer");
 
 const {
   saveEmotion,
   saveVoiceEmotion,
   getEmotionHistory,
-  getRiskScore
+  getRiskScore,
+  getRiskHistory,
+  getStressScore,
+  getDashboardData   // 👈 ADD THIS
 } = require("../controllers/emotionController");
 
 
@@ -20,7 +22,7 @@ const {
 router.post(
   "/save",
   protect,
-  imageUpload.single("image"),   // image key
+  imageUpload.single("image"),
   saveEmotion
 );
 
@@ -31,16 +33,34 @@ router.post(
 router.post(
   "/voice",
   protect,
-  audioUpload.single("file"),    // file key
+  audioUpload.single("file"),
   saveVoiceEmotion
 );
 
 
 // =================================
-// HISTORY + RISK
+// HISTORY ROUTE
 // =================================
 router.get("/history", protect, getEmotionHistory);
+
+
+// =================================
+// RISK ROUTES
+// =================================
 router.get("/risk", protect, getRiskScore);
+router.get("/risk-history", protect, getRiskHistory);
+
+
+// =================================
+// STRESS ROUTE
+// =================================
+router.get("/stress", protect, getStressScore);
+
+
+// =================================
+// DASHBOARD ROUTE  ✅ ADD THIS
+// =================================
+router.get("/dashboard", protect, getDashboardData);
 
 
 module.exports = router;

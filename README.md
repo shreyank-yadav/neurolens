@@ -1,112 +1,77 @@
-# 🧠 NeuroLens
-
-Multimodal AI-Powered Emotion Aware Wellness System
+# 🧠 NeuroLens – AI Powered Mental Health Monitoring System
 
 ---
 
-# 📌 Project Overview
+## 🚀 Project Overview
 
-NeuroLens is a multimodal AI-based mental wellness backend system that detects emotions using:
+NeuroLens is an AI-powered mental health monitoring system that:
 
-* Face (Image-based emotion detection)
-* Voice (Audio-based emotion detection)
+* Detects **facial emotions** from images
+* Detects **voice emotions** from audio
+* Calculates **Risk Score**
+* Calculates **Stress Index**
+* Generates **Mental Health Dashboard Data**
+* Stores historical emotional trends
 
-It stores emotional logs securely and calculates user risk levels for preventive mental healthcare.
+Architecture:
 
----
-
-# 🏗 Current Architecture
-
-Frontend (Pending)
-↓
-Backend (Node.js + Express)
-↓
-AI Service (FastAPI + Python ML)
-↓
-MongoDB Database
+Frontend → Backend (Node.js) → AI Service (FastAPI) → MongoDB
 
 ---
 
-# ✅ Work Completed (MVP Stage)
+# 🏗️ Architecture
 
-## 🔹 AI Service (FastAPI)
+## 1️⃣ Backend (Node.js + Express)
 
-✔ Face Emotion Detection (`/detect-face`)
-✔ Voice Emotion Detection (`/detect-voice`)
-✔ File handling with auto-cleanup
-✔ FER (Facial Emotion Recognition) model integration
-✔ Librosa-based voice feature extraction (MFCC)
-✔ REST API endpoints
+Responsibilities:
 
-### AI Service Tech Stack
+* JWT Authentication
+* Emotion storage
+* Risk Engine
+* Stress Engine
+* Dashboard Aggregation API
+* API layer for frontend
 
-* Python 3.10
-* FastAPI
-* TensorFlow
-* FER
-* OpenCV
-* Librosa
-* NumPy
-* Uvicorn
-
----
-
-## 🔹 Backend (Node.js)
-
-✔ User Registration
-✔ User Login (JWT Authentication)
-✔ Protected Routes
-✔ Save Face Emotion
-✔ Save Voice Emotion
-✔ Emotion History API
-✔ Risk Score Calculation
-✔ Multer file handling (Image + Audio separated)
-✔ MongoDB integration
-
-### Backend Tech Stack
-
-* Node.js
-* Express.js
-* MongoDB
-* Mongoose
-* JWT
-* Multer
-* Axios
-
----
-
-# 📂 Folder Structure
+Location:
 
 ```
-neuroLens/
-│
-├── ai-service/
-│   ├── app.py
-│   ├── temp_files/
-│   └── venv/
-│
-├── backend/
-│   ├── src/
-│   │   ├── config/
-│   │   ├── controllers/
-│   │   ├── middleware/
-│   │   ├── models/
-│   │   ├── routes/
-│   │
-│   └── uploads/
-│
-└── .gitignore
+/backend
+```
+
+Runs on:
+
+```
+http://localhost:5000
 ```
 
 ---
 
-# 🗄 Database Schema
+## 2️⃣ AI Service (FastAPI)
+
+Responsibilities:
+
+* Face emotion detection (FER + OpenCV)
+* Voice emotion detection (Librosa based processing)
+
+Location:
+
+```
+/ai-service
+```
+
+Runs on:
+
+```
+http://127.0.0.1:8000
+```
+
+---
+
+# 🗂️ Database Models (MongoDB)
 
 ## 👤 User Model
 
-Stored in MongoDB
-
-```js
+```
 {
   _id: ObjectId,
   name: String,
@@ -118,143 +83,248 @@ Stored in MongoDB
 }
 ```
 
+Currently active role: `user`
+
 ---
 
 ## 😊 EmotionLog Model
 
-```js
+Stores both face & voice emotions.
+
+```
 {
   _id: ObjectId,
-  userId: ObjectId (ref: User),
-  emotion: String,          // happy | sad | angry | neutral
-  confidence: Number,       // 0.0 - 1.0
+  userId: ObjectId,
+  emotion: String,
+  confidence: Number,
   createdAt: Date,
   updatedAt: Date
 }
 ```
 
----
+Supported emotions (AI based):
 
-# 📡 API Endpoints
-
-## 🔐 Auth Routes
-
-POST `/api/auth/register`
-POST `/api/auth/login`
-
----
-
-## 🎭 Emotion Routes
-
-POST `/api/emotion/save`      → Face Emotion (image key)
-POST `/api/emotion/voice`     → Voice Emotion (file key)
-GET  `/api/emotion/history`
-GET  `/api/emotion/risk`
+* happy
+* sad
+* angry
+* fear
+* disgust
 
 ---
 
-# 📤 File Upload Formats
+## ⚠️ RiskLog Model
 
-## Image Upload
+Calculated from last 7 emotional records.
 
-* Key: `image`
-* Format: JPG / PNG
-* Stored temporarily in `uploads/`
+```
+{
+  userId: ObjectId,
+  totalChecked: Number,
+  negativeCount: Number,
+  consecutiveNegative: Number,
+  highConfidenceNegative: Number,
+  riskScore: Number,
+  riskLevel: "Low" | "Moderate" | "High",
+  createdAt: Date
+}
+```
 
-## Audio Upload
+### Risk Formula
 
-* Key: `file`
-* Format: WAV only
-* Stored temporarily in `uploads/`
-
-Files are auto-deleted after processing.
-
----
-
-# 📊 Risk Calculation Logic (Current)
-
-* Last 5 emotional records checked
-* sad / angry counted as negative
-
-Risk Levels:
-
-* 0 negative → Low
-* 1-2 negative → Moderate
-* 3+ negative → High
+```
+riskScore =
+  (negativeCount * 2) +
+  (highConfidenceNegative * 3) +
+  (consecutiveNegative * 4)
+```
 
 ---
 
-# 🚧 Work Remaining
+## 📊 StressLog Model
 
-## 🔜 Backend
+Weekly comparison based stress calculation.
 
-* Weighted risk scoring
-* Time-decay emotion analysis
-* Therapist dashboard APIs
-* Alert notification system
-* Role-based access control expansion
+```
+{
+  userId: ObjectId,
+  currentWeekNegative: Number,
+  previousWeekNegative: Number,
+  moodDropPercentage: Number,
+  stressIndex: Number,
+  stressLevel: "Low" | "Moderate" | "High",
+  createdAt: Date
+}
+```
 
-## 🔜 AI Service
+### Stress Formula
 
-* Real deep learning voice emotion model
-* Emotion trend prediction model
-* Multimodal fusion (face + voice combined prediction)
-* Touch sensor integration (future hardware phase)
-
-## 🔜 Frontend
-
-* React Native mobile app
-* Live webcam detection
-* Live microphone detection
-* Neurologist dashboard UI
-
----
-
-# 🎯 Current Project Status
-
-AI Service: ~70% MVP Complete
-Backend: ~75% Complete
-Frontend: Not Started
-Hardware Integration: Not Started
-
-Overall Project Completion: ~60%
+```
+stressIndex =
+  (currentWeekNegative * 2) +
+  (moodDropPercentage * 0.5)
+```
 
 ---
 
-# 🚀 Future Vision
+# 🔐 Authentication
 
-NeuroLens aims to become a:
+All protected routes require:
 
-"Multimodal Emotion Intelligence Platform for Preventive Mental Healthcare"
+```
+Authorization: Bearer <JWT_TOKEN>
+```
 
-Planned features:
+Login Endpoint:
 
-* Real-time emotion tracking
-* Predictive mental health alerts
-* Therapist monitoring dashboard
-* Emotion analytics visualization
-* Smart wearable integration
-
----
-
-# 👨‍💻 Developer Notes
-
-* All routes are JWT protected
-* All files are validated before upload
-* AI service runs on port 8000
-* Backend runs on port 5000
-* MongoDB connection required before starting backend
+```
+POST /api/auth/login
+```
 
 ---
 
-# 🧠 Project Type
+# 📡 Backend API Endpoints
 
-AI + Backend Microservice Architecture
-Startup-Ready Scalable Design
+## 📷 Face Emotion
+
+```
+POST /api/emotion/save
+FormData Key: image
+```
+
+## 🎙️ Voice Emotion
+
+```
+POST /api/emotion/voice
+FormData Key: file
+```
+
+## 📜 Emotion History
+
+```
+GET /api/emotion/history
+```
+
+## ⚠️ Risk Score
+
+```
+GET /api/emotion/risk
+```
+
+## 📈 Risk History
+
+```
+GET /api/emotion/risk-history
+```
+
+## 📊 Stress Score
+
+```
+GET /api/emotion/stress
+```
+
+## 📊 Unified Dashboard API
+
+```
+GET /api/emotion/dashboard
+```
+
+Returns:
+
+```
+{
+  latestEmotion,
+  latestRisk,
+  latestStress,
+  totalLogs,
+  last7DaysNegative
+}
+```
+
+Frontend can build complete dashboard using this single endpoint.
 
 ---
 
-backend and ai-service by: Shreyank Yadav
-Project: NeuroLens
+# 🧠 AI Service Endpoints
+
+## Face Detection
+
+```
+POST http://127.0.0.1:8000/detect-face
+FormData: file
+```
+
+## Voice Detection
+
+```
+POST http://127.0.0.1:8000/detect-voice
+FormData: file
+```
 
 ---
+
+# 🛠️ Setup Instructions
+
+## Backend Setup
+
+```
+cd backend
+npm install
+node server.js
+```
+
+## AI Service Setup
+
+```
+cd ai-service
+venv\Scripts\activate
+python -m uvicorn app:app --reload --port 8000
+```
+
+---
+
+# 📊 Current Completion Status (Phase 1)
+
+| Module                | Status     |
+| --------------------- | ---------- |
+| Authentication        | ✅ Complete |
+| Face Emotion AI       | ✅ Complete |
+| Voice Emotion AI      | ✅ Complete |
+| Emotion Storage       | ✅ Complete |
+| Risk Engine           | ✅ Complete |
+| Stress Engine         | ✅ Complete |
+| Dashboard API         | ✅ Complete |
+| Role Based Access     | 🔜 Phase 2 |
+| Therapist/Admin Panel | 🔜 Phase 2 |
+
+Backend: ~95% Complete
+AI Service: Complete
+Core Mental Health Engine: Complete
+
+---
+
+# 🎯 For Frontend Developers
+
+Primary endpoint for dashboard:
+
+```
+GET /api/emotion/dashboard
+```
+
+Use this to display:
+
+* Current Mood
+* Risk Level Indicator
+* Stress Level Indicator
+* Total Emotional Logs
+* Last 7 Days Negative Count
+
+---
+
+# 👨‍💻 Maintainer
+
+Shreyank Yadav
+mohit yadav
+shubhendu dwivedi
+NeuroLens – AI Mental Health Monitoring System
+
+
